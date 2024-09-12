@@ -1,0 +1,31 @@
+{
+    "configurations": [
+        {
+            "name": "AVR",
+            "intelliSenseMode": "${default}",
+            "compilerPath": "/usr/bin/avr-g++",
+            "cStandard": "${default}",
+            "cppStandard": "${default}",
+            "includePath": [
+                "/usr/lib/avr/include/**",
+                "/usr/lib/avr/include/avr/**",
+                "/home/alm/work/avr/code/xmega/inc/**"
+            ],
+            "compilerArgs": [
+                "-g",
+                "-Os",
+                "-Wall",
+                "-Wextra",
+                "-fpermissive",
+                "-fno-exceptions",
+                "-fno-threadsafe-statics",
+                "-ffunction-sections",
+                "-fdata-sections",
+                "-pipe",
+                "-mmcu=atxmega128a1",
+                "-DF_CPU=32000000UL"
+            ]
+        }
+    ],
+    "version": 4
+}
