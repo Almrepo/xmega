@@ -1,4 +1,5 @@
 #include "xmega_twi.h"
+
 XmegaTwi::XmegaTwi(TWI_t *twi, xmega_twi_clock_t TWI_HZ)
 {
     xmega_twi_init(twi, TWI_HZ);

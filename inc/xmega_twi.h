@@ -1,6 +1,6 @@
 #ifndef _XMEGA_TWI_H_
 #define _XMEGA_TWI_H_
-#include "main.h"
+#include <avr/io.h>
 
 class XmegaTwi
 {
