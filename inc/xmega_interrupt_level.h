@@ -1,6 +1,6 @@
 #ifndef _XMEGA_INTERRUPT_LEVEL_H_
 #define _XMEGA_INTERRUPT_LEVEL_H_
-#include "main.h"
+#include <interrupt.h>
 
 class XmegaIntLvl
 {

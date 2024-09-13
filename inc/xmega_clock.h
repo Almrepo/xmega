@@ -1,7 +1,7 @@
 #ifndef _XMEGA_CLOCK_H_
 #define _XMEGA_CLOCK_H_
 
-#include "main.h"
+#include <avr/io.h>
 
 class XmegaClock
 {

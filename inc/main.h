@@ -4,7 +4,6 @@
 #include <avr/io.h>
 #include <util/delay.h>
 #include "xmega_clock.h"
-#include <interrupt.h>
 #include "xmega_interrupt_level.h"
 
 #endif
