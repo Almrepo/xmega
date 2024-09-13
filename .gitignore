@@ -1,0 +1,4 @@
+build/
+build/obj/home/alm/work/avr/code/xmega/src/main.cpp.obj
+build/obj/home/alm/work/avr/code/xmega/src/xmega_clock.cpp.obj
+build/obj/home/alm/work/avr/code/xmega/src/xmega_interrupt_level.cpp.obj
