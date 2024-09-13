@@ -1,6 +1,6 @@
 #ifndef _XMEGA_USART_H_
 #define _XMEGA_USART_H_
-#include "main.h"
+#include <avr/io.h>
 
 class XmegaUsart
 {
