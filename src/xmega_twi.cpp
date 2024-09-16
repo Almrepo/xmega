@@ -1,13 +1,13 @@
 #include "xmega_twi.h"
 
-XmegaTwi::XmegaTwi(TWI_t *twi, xmega_twi_clock_t TWI_HZ)
+XmegaTwi::XmegaTwi(TWI_t *twi, xmega_twi_clock_t TWI_HZ, uint32_t cpu_hz)
 {
-    xmega_twi_init(twi, TWI_HZ);
+    xmega_twi_init(twi, TWI_HZ, cpu_hz);
 }
 
-void XmegaTwi::xmega_twi_init(TWI_t *twi, xmega_twi_clock_t TWI_HZ)
+void XmegaTwi::xmega_twi_init(TWI_t *twi, xmega_twi_clock_t TWI_HZ, uint32_t cpu_hz)
 {
-    twi->MASTER.BAUD = ((F_CPU / (2 * TWI_HZ)) - 5); // расчет частоты работы twi
+    twi->MASTER.BAUD = ((cpu_hz / (2 * TWI_HZ)) - 5); // расчет частоты работы twi
     twi->MASTER.CTRLA = TWI_MASTER_ENABLE_bm;
     twi->MASTER.STATUS = TWI_MASTER_BUSSTATE_IDLE_gc;
 }
