@@ -13,7 +13,7 @@ int main()
     _delay_us(100);
 
     myi2c.twi_read_data(&TWIE, DS1307_ADDR, DS1307::SECONDS_REGISTER, cur_date, 4);
-    
+
     while (1)
     {
 

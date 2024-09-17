@@ -7,5 +7,6 @@
 #include "xmega_interrupt_level.h"
 #include "xmega_twi.h"
 #include "ds1307.h"
+#include "xmega_usart.h"
 
 #endif
