@@ -45,6 +45,48 @@ uint8_t XmegaTwi::twi_write_data(TWI_t *twi, uint8_t address, uint8_t *data, uin
     return 0;
 }
 
+uint8_t XmegaTwi::twi_write_data(TWI_t *twi, uint8_t address, uint8_t register_address, uint8_t *data, uint16_t msg_length)
+{
+    // Check bus state before doing anything, not idle -> exit with code 1
+    // Проверяйте состояние шины, прежде чем что-либо делать, не в режиме ожидания -> выход с кодом 1
+    if ((twi->MASTER.STATUS & TWI_MASTER_BUSSTATE_gm) != TWI_MASTER_BUSSTATE_IDLE_gc)
+        return 1;
+    // Send slave address
+    // Отправить адрес ведомого устройства
+    twi->MASTER.ADDR = address | WRITE;
+    while ((twi->MASTER.STATUS & TWI_MASTER_WIF_bm) == 0)
+        ;                                         // loop until transaction is complete // цикл до завершения транзакции
+    if (twi->MASTER.STATUS & TWI_MASTER_RXACK_bm) // No ACK from slave -> STOP ans exit with code 2// Нет подтверждения от slave -> ОСТАНОВИТЬ и завершить с кодом 2
+    {
+        twi->MASTER.CTRLC = TWI_MASTER_CMD_STOP_gc; // release the bus with a stop condition// отпустите шину с условием остановки
+        return 2;
+    }
+    // Send register_address
+    twi->MASTER.DATA = register_address;
+    while ((twi->MASTER.STATUS & TWI_MASTER_WIF_bm) == 0)
+        ;                                         // loop until transaction is complete
+    if (twi->MASTER.STATUS & TWI_MASTER_RXACK_bm) // No ACK from slave -> STOP ans exit with code 2
+    {
+        twi->MASTER.CTRLC = TWI_MASTER_CMD_STOP_gc; // release the bus with a stop condition
+        return 3;
+    }
+    // Send data// Отправить данные
+    for (uint16_t i = 0; i < msg_length; i++)
+    {
+        twi->MASTER.DATA = *(data + i);
+        while ((twi->MASTER.STATUS & TWI_MASTER_WIF_bm) == 0)
+            ;                                         // loop until transaction is complete
+        if (twi->MASTER.STATUS & TWI_MASTER_RXACK_bm) // No ACK from slave -> STOP ans exit with code 2
+        {
+            twi->MASTER.CTRLC = TWI_MASTER_CMD_STOP_gc; // release the bus with a stop condition
+            return (3 + i);
+        }
+    }
+    // Send stop and exit with code 0 (no error)
+    twi->MASTER.CTRLC = TWI_MASTER_CMD_STOP_gc; // release the bus with a stop condition
+    return 0;
+}
+
 uint8_t XmegaTwi::twi_read_data(TWI_t *twi, uint8_t address, uint8_t register_address, uint8_t *data, uint16_t msg_length)
 {
     // Check bus state before doing anything, not idle -> exit with code 1// Проверяйте состояние шины, прежде чем что-либо делать, не в режиме ожидания -> выход с кодом 1
