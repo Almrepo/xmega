@@ -18,6 +18,7 @@ public:
     };
     XmegaTwi(TWI_t *twi, xmega_twi_clock_t TWI_HZ, uint32_t cpu_hz);
     void xmega_twi_init(TWI_t *twi, xmega_twi_clock_t twi_clock, uint32_t cpu_hz);
+    uint8_t twi_write_data(TWI_t *twi, uint8_t address, uint8_t register_address, uint8_t *data, uint16_t msg_length);
     uint8_t twi_write_data(TWI_t *twi, uint8_t address, uint8_t *data, uint16_t msg_length);
     uint8_t twi_read_data(TWI_t *twi, uint8_t address, uint8_t register_address, uint8_t *data, uint16_t msg_length);
 };

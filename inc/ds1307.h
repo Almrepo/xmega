@@ -7,7 +7,7 @@
 class DS1307 : public XmegaTwi
 {
 public:
-    enum ds1307_adr_reg_date_t
+    enum
     {
         SECONDS_REGISTER = 0x00,
         MINUTES_REGISTER = 0x01,

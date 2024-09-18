@@ -1,5 +1,7 @@
 #include "ds1307.h"
 #include <avr/io.h>
+
+// For run ds1307 in sec/registor 0x00 write 0
 DS1307::DS1307(TWI_t *twi, xmega_twi_clock_t TWI_HZ, uint32_t cpu_hz) : XmegaTwi(twi, TWI_HZ, cpu_hz)
 {
 	xmega_twi_init(twi, TWI_HZ, cpu_hz);
