@@ -12,5 +12,6 @@
   "AVR.device.frequency": 32000000,
   "AVR.programmer.type": "avrispmkii",
   "AVR.programmer.port": "usb",
-  "AVR.programmer.rate": 9600
+  "AVR.programmer.rate": 9600,
+  "errorLens.codeLensEnabled": true
 }
