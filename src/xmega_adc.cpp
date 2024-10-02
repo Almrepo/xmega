@@ -26,21 +26,20 @@ void XmegaAdc::xmega_adc_select_vref(ADC_t *adc, ADC_REFSEL_t ref_vcc)
 
 // Запуск одиночного преобразования в нужном канале
 // Example for ADCA 0 chanel: &ADCA.CH0
-void XmegaAdc::xmega_adc_single_start_chanel(ADC_CH_t *ch)
+void XmegaAdc::xmega_adc_single_mode_start(ADC_CH_t *ch)
 {
     ch->CTRL = ADC_CH_START_bm;
-    
 }
 // Остановка одиночного преобразования в нужном канале
 // Example for ADCA 0 chanel: &ADCA.CH0
-void XmegaAdc::xmega_adc_single_stop_chanel(ADC_CH_t *ch)
+void XmegaAdc::xmega_adc_single_mode_stop(ADC_CH_t *ch)
 {
     ch->CTRL &= ~ADC_CH_START_bm;
 }
 
 // Инициализация ADC.
 //  Example: adc(&ADCA, ADC_REFSEL_AREFA_gc, ADC_PRESCALER_DIV128_gc, &ADCA.CH0);
-void XmegaAdc::xmega_adc_init(ADC_t *adc, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_CH_t *ch)
+void XmegaAdc::xmega_adc_init(ADC_t* adc, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_CH_t *ch)
 {
     // PORTA.DIRCLR = PIN0_bm; // configure PORTA PIN0 as input
 
@@ -48,7 +47,6 @@ void XmegaAdc::xmega_adc_init(ADC_t *adc, ADC_REFSEL_t ref, ADC_PRESCALER_t pres
     adc->PRESCALER = prescaler; //
     ch->CTRL = ADC_CH_START_bm; // выбор канала
     adc->CTRLA = ADC_ENABLE_bm; // включение ADC
-    
 }
 
 /**  Запуск автоматического преобразования в нужном канале
@@ -57,7 +55,7 @@ void XmegaAdc::xmega_adc_init(ADC_t *adc, ADC_REFSEL_t ref, ADC_PRESCALER_t pres
  * \param  ADC_SWEEP_012_gc enable ADC Channel 0,1,2
  * \param ADC_SWEEP_0123_gc enable ADC Channel 0,1,2,3
  */
-void XmegaAdc::xmega_adc_start_multiple_mode(ADC_t *adc, ADC_SWEEP_t ch)
+void XmegaAdc::xmega_adc_multiple_mode_start(ADC_t *adc, ADC_SWEEP_t ch)
 {
     adc->CTRLB = ADC_FREERUN_bm; // включение многократного преобразования
     adc->EVCTRL = ch;            // включение нужных каналов
@@ -68,11 +66,12 @@ void XmegaAdc::xmega_adc_start_multiple_mode(ADC_t *adc, ADC_SWEEP_t ch)
  * \param  ADC_SWEEP_012_gc disable ADC Channel 0,1,2
  * \param ADC_SWEEP_0123_gc disable ADC Channel 0,1,2,3
  */
-void XmegaAdc::xmega_adc_stop_multiple_mode(ADC_t *adc, ADC_SWEEP_t ch)
+void XmegaAdc::xmega_adc_multiple_mode_stop(ADC_t *adc, ADC_SWEEP_t ch)
 {
     adc->CTRLB &= ~ADC_FREERUN_bm; // выключение многократного преобразования
     adc->EVCTRL &= ~ch;            // выключение каналов
 }
+
 // Очистка конвеера АЦП.
 void XmegaAdc::xmega_adc_clear(ADC_t *adc)
 {
@@ -91,7 +90,7 @@ uint8_t XmegaAdc::xmega_adc_get_calibration_data(uint8_t index)
     return (result);
 }
 
-void XmegaAdc::xmega_adc_write_calibration_byte(ADC_t *adc)
+void XmegaAdc::xmega_adc_write_calibration_data(ADC_t *adc)
 {
     // ADCA.CALL = xmega_adc_get_calibration_data(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
     // ADCA.CALH = xmega_adc_get_calibration_data(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
