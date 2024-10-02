@@ -77,7 +77,15 @@ void XmegaAdc::xmega_adc_clear(ADC_t *adc)
 {
     adc->CTRLA = ADC_FLUSH_bm;
 }
-
+//Считываем результат
+//Example: &ADCA.CH0
+uint16_t XmegaAdc::xmega_adc_read_result(ADC_CH_t *ch)
+{
+    while(!(ch->INTFLAGS));
+    ch->INTFLAGS=ADC_CH_CHIF_bm;
+    adcResult +=ch->RES;
+          
+}
 // загрузка калибровочных данных
 uint8_t XmegaAdc::xmega_adc_get_calibration_data(uint8_t index)
 {
