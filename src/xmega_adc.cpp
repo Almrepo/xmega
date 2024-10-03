@@ -8,6 +8,22 @@ XmegaAdc::XmegaAdc(ADC_t *adc, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_
     xmega_adc_init(adc, ref, prescaler, ch);
 }
 
+// Инициализация ADC.
+//  Example: adc(&ADCA, ADC_REFSEL_AREFA_gc, ADC_PRESCALER_DIV128_gc, &ADCA.CH0);
+void XmegaAdc::xmega_adc_init(ADC_t *adc, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_CH_t *ch)
+{
+    PORTA.DIRCLR = PIN0_bm;      // configure PORTA PIN0 as input
+    adc->CTRLA |= ADC_ENABLE_bm; // включение ADC
+    adc->REFCTRL = ref;
+    adc->PRESCALER = prescaler; //
+    adc->CTRLB = ADC_RESOLUTION_12BIT_gc;
+    ch->CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc; // Внешний положительный (несимметричный) входной сигнал
+    ch->MUXCTRL = ADC_CH_MUXPOS_PIN0_gc;
+    // ch->CTRL = ADC_CH_START_bm;            // Запуск в выбраном канале
+
+    xmega_adc_write_calibration_data(adc);
+}
+
 void XmegaAdc::xmega_adc_clock()
 {
     OSC.PLLCTRL = OSC_PLLSRC_RC32M_gc;
@@ -28,25 +44,13 @@ void XmegaAdc::xmega_adc_select_vref(ADC_t *adc, ADC_REFSEL_t ref_vcc)
 // Example for ADCA 0 chanel: &ADCA.CH0
 void XmegaAdc::xmega_adc_single_mode_start(ADC_CH_t *ch)
 {
-    ch->CTRL = ADC_CH_START_bm;
+    ch->CTRL |= ADC_CH_START_bm;
 }
 // Остановка одиночного преобразования в нужном канале
 // Example for ADCA 0 chanel: &ADCA.CH0
 void XmegaAdc::xmega_adc_single_mode_stop(ADC_CH_t *ch)
 {
     ch->CTRL &= ~ADC_CH_START_bm;
-}
-
-// Инициализация ADC.
-//  Example: adc(&ADCA, ADC_REFSEL_AREFA_gc, ADC_PRESCALER_DIV128_gc, &ADCA.CH0);
-void XmegaAdc::xmega_adc_init(ADC_t* adc, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_CH_t *ch)
-{
-    // PORTA.DIRCLR = PIN0_bm; // configure PORTA PIN0 as input
-
-    adc->REFCTRL = ref;
-    adc->PRESCALER = prescaler; //
-    ch->CTRL = ADC_CH_START_bm; // выбор канала
-    adc->CTRLA = ADC_ENABLE_bm; // включение ADC
 }
 
 /**  Запуск автоматического преобразования в нужном канале
@@ -77,17 +81,19 @@ void XmegaAdc::xmega_adc_clear(ADC_t *adc)
 {
     adc->CTRLA = ADC_FLUSH_bm;
 }
-//Считываем результат
-//Example: &ADCA.CH0
+// Считываем результат
+// Example: &ADCA.CH0
 uint16_t XmegaAdc::xmega_adc_read_result(ADC_CH_t *ch)
 {
-    while(!(ch->INTFLAGS));
-    ch->INTFLAGS=ADC_CH_CHIF_bm;
-    adcResult +=ch->RES;
-          
+    while (!(ch->INTFLAGS))
+        ;
+    ch->INTFLAGS = ADC_CH_CHIF_bm;
+    adcResult = ch->RES;
+
+    return adcResult;
 }
 // загрузка калибровочных данных
-uint8_t XmegaAdc::xmega_adc_get_calibration_data(uint8_t index)
+uint8_t XmegaAdc::xmega_adc_read_calibration_data(uint8_t index)
 {
     uint8_t result;
     /* Load the NVM Command register to read the calibration row. */
@@ -102,6 +108,6 @@ void XmegaAdc::xmega_adc_write_calibration_data(ADC_t *adc)
 {
     // ADCA.CALL = xmega_adc_get_calibration_data(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
     // ADCA.CALH = xmega_adc_get_calibration_data(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
-    adc->CALL = xmega_adc_get_calibration_data(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
-    adc->CALH = xmega_adc_get_calibration_data(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
+    adc->CALL = xmega_adc_read_calibration_data(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
+    adc->CALH = xmega_adc_read_calibration_data(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
 }
