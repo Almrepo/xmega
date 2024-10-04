@@ -12,16 +12,16 @@ XmegaAdc::XmegaAdc(ADC_t *adc, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_
 //  Example: adc(&ADCA, ADC_REFSEL_AREFA_gc, ADC_PRESCALER_DIV128_gc, &ADCA.CH0);
 void XmegaAdc::xmega_adc_init(ADC_t *adc, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_CH_t *ch)
 {
-    PORTA.DIRCLR = PIN0_bm;      // configure PORTA PIN0 as input
+    PORTA.DIRCLR = PIN1_bm;      // configure PORTA PIN0 as input
     adc->CTRLA |= ADC_ENABLE_bm; // включение ADC
     adc->REFCTRL = ref;
     adc->PRESCALER = prescaler; //
     adc->CTRLB = ADC_RESOLUTION_12BIT_gc;
     ch->CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc; // Внешний положительный (несимметричный) входной сигнал
-    ch->MUXCTRL = ADC_CH_MUXPOS_PIN0_gc;
+    ch->MUXCTRL = ADC_CH_MUXPOS_PIN1_gc;
     // ch->CTRL = ADC_CH_START_bm;            // Запуск в выбраном канале
 
-    xmega_adc_write_calibration_data(adc);
+    //xmega_adc_write_calibration_data(adc);
 }
 
 void XmegaAdc::xmega_adc_clock()
@@ -83,14 +83,27 @@ void XmegaAdc::xmega_adc_clear(ADC_t *adc)
 }
 // Считываем результат
 // Example: &ADCA.CH0
-uint16_t XmegaAdc::xmega_adc_read_result(ADC_CH_t *ch)
+float XmegaAdc::xmega_adc_read_result(ADC_CH_t *ch)
 {
-    while (!(ch->INTFLAGS))
-        ;
-    ch->INTFLAGS = ADC_CH_CHIF_bm;
-    adcResult = ch->RES;
+    float adcResult = 0;
+    for (uint8_t i = 0; i < 10; i++)
+    {
 
-    return adcResult;
+        while (!(ch->INTFLAGS))
+            ;
+        ch->INTFLAGS = ADC_CH_CHIF_bm;
+        adcResult += ch->RES;
+    }
+
+    adcResult = adcResult / 10;
+    return (adcResult * 1.84f / 4096);
+
+    // while (!(ch->INTFLAGS))
+    //     ;
+    // ch->INTFLAGS = ADC_CH_CHIF_bm;
+    // adcResult = ch->RES;
+
+    // return adcResult;
 }
 // загрузка калибровочных данных
 uint8_t XmegaAdc::xmega_adc_read_calibration_data(uint8_t index)
