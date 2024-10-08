@@ -1,47 +1,35 @@
 #include "xmega_adc.h"
-XmegaAdc::XmegaAdc() {}
+
 // Конструктор с инициализацией ADC с внешним контролируемым сигналом
-XmegaAdc::XmegaAdc(ADC_t *adc, PORT_t *port_name, uint8_t pinAdc_bm, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_CH_t *ch)
+// Example: adc(&ADCA, &PORTA,PIN1_bm,ADC_REFSEL_AREFA_gc, ADC_PRESCALER_DIV128_gc, &ADCA.CH0
+XmegaAdc::XmegaAdc(ADC_t *_adc, PORT_t *_portAdc, uint8_t _pinAdc, ADC_REFSEL_t _Vref, ADC_PRESCALER_t _prescaler, ADC_CH_INPUTMODE_t _source_signal, ADC_CH_MUXPOS_t _pin_muxpos, ADC_CH_t *_chanel)
+    : adc(_adc), portAdc(_portAdc), pinAdc(_pinAdc), Vref(_Vref), prescaler(_prescaler), source_signal(_source_signal), pin_muxpos(_pin_muxpos), chanel(_chanel)
 {
-    xmega_adc_init(adc, port_name, pinAdc_bm, ref, prescaler, ch);
+
+    portAdc->DIRCLR = pinAdc;
+    xmega_adc_init();
 }
 
 // Конструктор с инициализацией ADC с внутренним контролируемым сигналом
-XmegaAdc::XmegaAdc(ADC_t *adc, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_CH_t *ch)
+XmegaAdc::XmegaAdc(ADC_t *_adc, ADC_REFSEL_t _Vref, ADC_PRESCALER_t _prescaler, ADC_CH_INPUTMODE_t _source_signal, ADC_CH_MUXPOS_t _pin_muxpos, ADC_CH_t *_chanel)
+    : adc(_adc), Vref(_Vref), prescaler(_prescaler), source_signal(_source_signal), pin_muxpos(_pin_muxpos), chanel(_chanel)
 {
-    xmega_adc_init(adc, ref, prescaler, ch);
+    xmega_adc_init();
 }
 
 // Инициализация ADC с внутренним контролируемым сигналом
-//  Example: adc(&ADCA, ADC_REFSEL_AREFA_gc, ADC_PRESCALER_DIV128_gc, &ADCA.CH0);
-void XmegaAdc::xmega_adc_init(ADC_t *adc, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_CH_t *ch)
+void XmegaAdc::xmega_adc_init()
 {
 
-    adc->REFCTRL = ref;
+    adc->REFCTRL = Vref;
     adc->PRESCALER = prescaler; //
     adc->CTRLB = ADC_RESOLUTION_12BIT_gc;
-    ch->CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc; // Внешний положительный (несимметричный) входной сигнал
-    ch->MUXCTRL = ADC_CH_MUXPOS_PIN1_gc;
-    xmega_adc_write_calibration_data(adc);
+    chanel->CTRL = source_signal; // Внешний положительный (несимметричный) входной сигнал
+    chanel->MUXCTRL = pin_muxpos;
+    xmega_adc_write_calibration_data();
     adc->CTRLA |= ADC_ENABLE_bm; // включение ADC
 
     _delay_us(2);
-}
-
-// Инициализация ADC с внешним контролируемым сигналом
-//  Example: adc(&ADCA,&PORTA,PIN1_bm, ADC_REFSEL_AREFA_gc, ADC_PRESCALER_DIV128_gc, &ADCA.CH0);
-void XmegaAdc::xmega_adc_init(ADC_t *adc, PORT_t *port_name, uint8_t pinAdc_bm, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_CH_t *ch)
-{
-    port_name->DIRCLR = pinAdc_bm; // configure PORT PIN as input
-    adc->REFCTRL = ref;
-    adc->PRESCALER = prescaler; //
-    adc->CTRLB = ADC_RESOLUTION_12BIT_gc;
-    ch->CTRL = ADC_CH_INPUTMODE_SINGLEENDED_gc; // Внешний положительный (несимметричный) входной сигнал
-    ch->MUXCTRL = ADC_CH_MUXPOS_PIN1_gc;
-    xmega_adc_write_calibration_data(adc);
-    adc->CTRLA |= ADC_ENABLE_bm; // включение ADC
-
-    _delay_ms(10);
 }
 
 void XmegaAdc::xmega_adc_clock()
@@ -55,14 +43,15 @@ void XmegaAdc::xmega_adc_clock()
  * \param  ADC_REFSEL_AREFA_gc Внешнее опорное напряжение с вывода AREF порта А
  * \param  ADC_REFSEL_AREFB_gc Внешнее опорное напряжение с вывода AREF порта B
  */
-void XmegaAdc::xmega_adc_select_vref(ADC_t *adc, ADC_REFSEL_t ref_vcc)
+void XmegaAdc::xmega_adc_select_vref(ADC_REFSEL_t ref)
 {
-    adc->REFCTRL = ref_vcc;
+
+    adc->REFCTRL = ref;
 }
 
 // Запуск одиночного преобразования в нужном канале
 // Example for ADCA 0 chanel: &ADCA.CH0
-void XmegaAdc::xmega_adc_single_mode_start(ADC_t *adc, ADC_CH_t *ch)
+void XmegaAdc::xmega_adc_single_mode_start(ADC_CH_t *ch)
 {
     adc->CTRLB &= ~ADC_FREERUN_bm;
     ch->CTRL |= ADC_CH_START_bm;
@@ -80,7 +69,7 @@ void XmegaAdc::xmega_adc_single_mode_stop(ADC_CH_t *ch)
  * \param  ADC_SWEEP_012_gc enable ADC Channel 0,1,2
  * \param ADC_SWEEP_0123_gc enable ADC Channel 0,1,2,3
  */
-void XmegaAdc::xmega_adc_multiple_mode_start(ADC_t *adc, ADC_SWEEP_t ch)
+void XmegaAdc::xmega_adc_multiple_mode_start(ADC_SWEEP_t ch)
 {
     adc->CTRLB |= ADC_FREERUN_bm; // включение многократного преобразования
     adc->EVCTRL = ch;             // включение нужных каналов
@@ -91,32 +80,32 @@ void XmegaAdc::xmega_adc_multiple_mode_start(ADC_t *adc, ADC_SWEEP_t ch)
  * \param  ADC_SWEEP_012_gc disable ADC Channel 0,1,2
  * \param ADC_SWEEP_0123_gc disable ADC Channel 0,1,2,3
  */
-void XmegaAdc::xmega_adc_multiple_mode_stop(ADC_t *adc, ADC_SWEEP_t ch)
+void XmegaAdc::xmega_adc_multiple_mode_stop(ADC_SWEEP_t ch)
 {
     adc->CTRLB &= ~ADC_FREERUN_bm; // выключение многократного преобразования
     adc->EVCTRL &= ~ch;            // выключение каналов
 }
 // Запись числа в регистр сравнения
-void XmegaAdc::xmega_adc_write_cmp_value(ADC_t *adc, uint16_t value)
+void XmegaAdc::xmega_adc_write_cmp_value(uint16_t value)
 {
     adc->CMPH = (uint8_t)(value & 0xFF00) >> 8;
     adc->CMPL = (uint8_t)(value & 0x00FF);
 }
 // Очистка конвеера АЦП.
-void XmegaAdc::xmega_adc_clear(ADC_t *adc)
+void XmegaAdc::xmega_adc_clear()
 {
     adc->CTRLA = ADC_FLUSH_bm;
 }
 // Считываем сырой результат ADC
 // Example: &ADCA.CH0
-uint16_t XmegaAdc::xmega_adc_read_result(ADC_CH_t *ch)
+uint16_t XmegaAdc::xmega_adc_read_result()
 {
     uint16_t adcResult = 0;
 
-    while (!(ch->INTFLAGS))
+    while (!(chanel->INTFLAGS))
         ;
-    ch->INTFLAGS = ADC_CH_CHIF_bm;
-    adcResult = ch->RES;
+    chanel->INTFLAGS = ADC_CH_CHIF_bm;
+    adcResult = chanel->RES;
     return adcResult;
 }
 
@@ -134,16 +123,16 @@ uint8_t XmegaAdc::convert_float_to_uint8(float value)
 }
 
 // Получение готового числа. Аргументы : канал (ADCa_b.CHn), опорное напряжение в float формате , число отрезков(битность adc).
-float XmegaAdc::xmega_adc_get_result(ADC_CH_t *ch, float vref, uint16_t adcBit)
+float XmegaAdc::xmega_adc_get_result(float vref, uint16_t adcBit)
 {
     float adcResult;
     for (uint8_t i = 0; i < 5; i++) // Усреднение
     {
-        ch->CTRL |= ADC_CH_START_bm;
-        while (!(ch->INTFLAGS))
+        chanel->CTRL |= ADC_CH_START_bm;
+        while (!(chanel->INTFLAGS))
             ;
-        ch->INTFLAGS = ADC_CH_CHIF_bm;
-        adcResult += ch->RES;
+        chanel->INTFLAGS = ADC_CH_CHIF_bm;
+        adcResult += chanel->RES;
     }
     adcResult = adcResult / 5;            // Из 5 полученных результатов, ,берем среднее
     return ((adcResult * vref) / adcBit); // перевод в реальное значение
@@ -161,15 +150,15 @@ uint8_t XmegaAdc::xmega_adc_read_calibration_data(uint8_t index)
     return (result);
 }
 // Запись колибровочных данных
-void XmegaAdc::xmega_adc_write_calibration_data(ADC_t *adc)
+void XmegaAdc::xmega_adc_write_calibration_data()
 {
     adc->CALL = xmega_adc_read_calibration_data(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
     adc->CALH = xmega_adc_read_calibration_data(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
 }
 // Настройка и включение прерывания. Mode-выбор причины прерывания, level-уровень прерывания.
-void XmegaAdc::xmega_adc_interrupt_enable(ADC_CH_t *adc_ch, ADC_CH_INTMODE_t mode, ADC_CH_INTLVL_t level)
+void XmegaAdc::xmega_adc_interrupt_enable(ADC_CH_INTMODE_t mode, ADC_CH_INTLVL_t level)
 {
-    adc_ch->INTCTRL = mode | level;
+    chanel->INTCTRL = mode | level;
 }
 
 // Считывание значения offset. Нужный PIN (ADC_CH_MUXPOS_PIN1_gc) подтянуть на землю
