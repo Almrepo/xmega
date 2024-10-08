@@ -1,4 +1,5 @@
 #include "xmega_adc.h"
+XmegaAdc::XmegaAdc() {}
 // Конструктор с инициализацией ADC с внешним контролируемым сигналом
 XmegaAdc::XmegaAdc(ADC_t *adc, PORT_t *port_name, uint8_t pinAdc_bm, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_CH_t *ch)
 {
@@ -24,7 +25,7 @@ void XmegaAdc::xmega_adc_init(ADC_t *adc, ADC_REFSEL_t ref, ADC_PRESCALER_t pres
     xmega_adc_write_calibration_data(adc);
     adc->CTRLA |= ADC_ENABLE_bm; // включение ADC
 
-    _delay_ms(10);
+    _delay_us(2);
 }
 
 // Инициализация ADC с внешним контролируемым сигналом
@@ -165,6 +166,51 @@ void XmegaAdc::xmega_adc_write_calibration_data(ADC_t *adc)
     adc->CALL = xmega_adc_read_calibration_data(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL0));
     adc->CALH = xmega_adc_read_calibration_data(offsetof(NVM_PROD_SIGNATURES_t, ADCACAL1));
 }
+// Настройка и включение прерывания. Mode-выбор причины прерывания, level-уровень прерывания.
+void XmegaAdc::xmega_adc_interrupt_enable(ADC_CH_t *adc_ch, ADC_CH_INTMODE_t mode, ADC_CH_INTLVL_t level)
+{
+    adc_ch->INTCTRL = mode | level;
+}
 
+// Считывание значения offset. Нужный PIN (ADC_CH_MUXPOS_PIN1_gc) подтянуть на землю
+uint8_t XmegaAdc::xmega_adc_read_offset(ADC_t *adc, ADC_CH_t *adc_ch, ADC_CH_MUXPOS_t muxpos_pin)
+{
+    uint8_t adcb_offset;
+    unsigned int offs;
 
-   
+    // Read and save the ADC offset using channel 0
+    // ADC1 pin connected to GND
+    // adc_ch->CTRL = (0 << ADC_CH_START_bp) | ADC_CH_INPUTMODE_SINGLEENDED_gc;
+    // adc_ch->MUXCTRL = muxpos_pin;
+    // Enable the ADC in order to read the offset
+    // adc->CTRLA |= ADC_ENABLE_bm;
+    // Insert a delay to allow the ADC common mode voltage to stabilize
+    _delay_us(2);
+    // Perform several offset measurements and store the mean value
+    offs = 0;
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        // Start the AD conversion on channel 0
+        adc_ch->CTRL |= 1 << ADC_CH_START_bp;
+        // Wait for the AD conversion to complete
+        while ((adc_ch->INTFLAGS & ADC_CH_CHIF_bm) == 0)
+            ;
+        // Clear the interrupt flag
+        adc_ch->INTFLAGS = ADC_CH_CHIF_bm;
+        // Read the offset
+        offs += (uint8_t)adc_ch->RESL;
+    }
+    // Disable the ADC
+    adc->CTRLA &= ~ADC_ENABLE_bm;
+    // Store the mean value of the offset
+    adcb_offset = (uint8_t)(offs / 10);
+    return adcb_offset;
+}
+// Порядок прерывания ADC
+// 1) sei(); 2) PMIC 3)INTCTRL.INTMODE-причина прерывания 4)INTCTRL.INTLVL - уровень прерывания
+//
+// Обработчик прерываний нужного канала
+//   ISR(ADCA_CH0_vect)
+//   {
+
+// }

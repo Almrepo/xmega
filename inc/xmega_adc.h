@@ -10,8 +10,12 @@ class XmegaAdc
 {
 private:
     // volatile uint16_t adcResult = 0;
+   
+        
+
 
 public:
+    XmegaAdc::XmegaAdc();
     XmegaAdc(ADC_t *adc, PORT_t *port_name, uint8_t pinAdc_bm, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_CH_t *ch);
     XmegaAdc(ADC_t *adc, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_CH_t *ch);
     void xmega_adc_init(ADC_t *adc, PORT_t *port_name, uint8_t pinAdc_bm, ADC_REFSEL_t ref, ADC_PRESCALER_t prescaler, ADC_CH_t *);
@@ -30,5 +34,7 @@ public:
     uint8_t convert_float_to_uint8(float value);
     float xmega_adc_get_result(ADC_CH_t *ch, float vref, uint16_t adcBit);
     void xmega_adc_write_cmp_value(ADC_t *adc, uint16_t value);
+    void xmega_adc_interrupt_enable(ADC_CH_t *adc_ch, ADC_CH_INTMODE_t mode, ADC_CH_INTLVL_t level);
+    uint8_t xmega_adc_read_offset(ADC_t *adc, ADC_CH_t *adc_ch, ADC_CH_MUXPOS_t muxpos_pin);
 };
 #endif
