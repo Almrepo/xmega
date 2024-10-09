@@ -7,4 +7,5 @@
 #include "xmega_interrupt_level.h"
 #include "xmega_adc.h"
 #include "xmega_usart.h"
+#include <interrupt.h>
 #endif

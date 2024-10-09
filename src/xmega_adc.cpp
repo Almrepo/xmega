@@ -1,7 +1,7 @@
 #include "xmega_adc.h"
 
-// Конструктор с инициализацией ADC с внешним контролируемым сигналом
 // Example: adc(&ADCA, &PORTA,PIN1_bm,ADC_REFSEL_AREFA_gc, ADC_PRESCALER_DIV128_gc, &ADCA.CH0
+// Конструктор с инициализацией ADC с внешним контролируемым сигналом
 XmegaAdc::XmegaAdc(ADC_t *_adc, PORT_t *_portAdc, uint8_t _pinAdc, ADC_REFSEL_t _Vref, ADC_PRESCALER_t _prescaler, ADC_CH_INPUTMODE_t _source_signal, ADC_CH_MUXPOS_t _pin_muxpos, ADC_CH_t *_chanel)
     : adc(_adc), portAdc(_portAdc), pinAdc(_pinAdc), Vref(_Vref), prescaler(_prescaler), source_signal(_source_signal), pin_muxpos(_pin_muxpos), chanel(_chanel)
 {
@@ -24,12 +24,12 @@ void XmegaAdc::xmega_adc_init()
     adc->REFCTRL = Vref;
     adc->PRESCALER = prescaler; //
     adc->CTRLB = ADC_RESOLUTION_12BIT_gc;
-    chanel->CTRL = source_signal; // Внешний положительный (несимметричный) входной сигнал
+    chanel->CTRL = source_signal; // входной сигнал
     chanel->MUXCTRL = pin_muxpos;
     xmega_adc_write_calibration_data();
     adc->CTRLA |= ADC_ENABLE_bm; // включение ADC
 
-    _delay_us(2);
+    _delay_us(100);
 }
 
 void XmegaAdc::xmega_adc_clock()
@@ -98,22 +98,25 @@ void XmegaAdc::xmega_adc_clear()
 }
 // Считываем сырой результат ADC
 // Example: &ADCA.CH0
-uint16_t XmegaAdc::xmega_adc_read_result()
+uint16_t XmegaAdc::xmega_adc_read_value()
 {
+
     uint16_t adcResult = 0;
 
     while (!(chanel->INTFLAGS))
         ;
     chanel->INTFLAGS = ADC_CH_CHIF_bm;
     adcResult = chanel->RES;
-    return adcResult;
 }
-
-// Конвертация результата uint16_t  ADC в реальное число float . Аргументы : считанные данные с ADC, опорное напряжение в float формате , число отрезков-4096 для 12 бит(битность adc).
-float XmegaAdc::xmega_adc_convert_result(uint16_t adcResult, float vref, uint16_t adcBit)
+/** Конвертация результата uint16_t  ADC в число float
+ * \param adcResult  значение считанное с ADC
+ * \param vref передать значение опорного напряжения в float формате (1.0)
+ * \param  adcBit передать значение 4096 для 12-ти битного ADC, с беззнаковым результатом
+ */
+float XmegaAdc::xmega_adc_convert_to_result(uint16_t adcResult, float vref, uint16_t adcBit)
 {
-    float Result = 0;
-    return (Result * vref / adcBit);
+
+    return (adcResult * vref / adcBit);
 }
 
 // Конвертация числа типа  float  в число типа uint8_t (*100 - два знака после запятой).
@@ -122,7 +125,10 @@ uint8_t XmegaAdc::convert_float_to_uint8(float value)
     return (uint8_t)(value * 100);
 }
 
-// Получение готового числа. Аргументы : канал (ADCa_b.CHn), опорное напряжение в float формате , число отрезков(битность adc).
+/**  Получение готового значения ADC.
+ * \param vref передать значение опорного напряжения в float формате (1.0)
+ * \param  adcBit передать значение 4096 для 12-ти битного ADC, с беззнаковым результатом
+ */
 float XmegaAdc::xmega_adc_get_result(float vref, uint16_t adcBit)
 {
     float adcResult;
