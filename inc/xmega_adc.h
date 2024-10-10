@@ -35,11 +35,12 @@ public:
     uint16_t xmega_adc_read_value();
     uint8_t xmega_adc_read_calibration_data(uint8_t index);
     void xmega_adc_write_calibration_data();
-    float xmega_adc_convert_to_result(uint16_t adcRes, float vref, uint16_t adcBit);
+    float xmega_adc_convert_value_to_result(uint16_t adcRes, float vref, uint16_t adcBit);
     uint8_t convert_float_to_uint8(float value);
     float xmega_adc_get_result(float vref, uint16_t adcBit);
     void xmega_adc_write_cmp_value(uint16_t value);
     void xmega_adc_interrupt_enable(ADC_CH_INTMODE_t mode, ADC_CH_INTLVL_t level);
     uint8_t xmega_adc_read_offset(ADC_t *adc, ADC_CH_t *adc_ch, ADC_CH_MUXPOS_t muxpos_pin);
+    uint16_t xmega_adc_read_value_by_interrupt();
 };
 #endif

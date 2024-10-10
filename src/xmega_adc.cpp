@@ -96,7 +96,7 @@ void XmegaAdc::xmega_adc_clear()
 {
     adc->CTRLA = ADC_FLUSH_bm;
 }
-// Считываем сырой результат ADC
+// Считываем  результат ADC
 // Example: &ADCA.CH0
 uint16_t XmegaAdc::xmega_adc_read_value()
 {
@@ -108,12 +108,18 @@ uint16_t XmegaAdc::xmega_adc_read_value()
     chanel->INTFLAGS = ADC_CH_CHIF_bm;
     adcResult = chanel->RES;
 }
+uint16_t XmegaAdc::xmega_adc_read_value_by_interrupt()
+{
+    uint16_t adcResult=0;
+    adcResult=chanel->RES;
+}
+
 /** Конвертация результата uint16_t  ADC в число float
  * \param adcResult  значение считанное с ADC
  * \param vref передать значение опорного напряжения в float формате (1.0)
  * \param  adcBit передать значение 4096 для 12-ти битного ADC, с беззнаковым результатом
  */
-float XmegaAdc::xmega_adc_convert_to_result(uint16_t adcResult, float vref, uint16_t adcBit)
+float XmegaAdc::xmega_adc_convert_value_to_result(uint16_t adcResult, float vref, uint16_t adcBit)
 {
 
     return (adcResult * vref / adcBit);
@@ -164,7 +170,7 @@ void XmegaAdc::xmega_adc_write_calibration_data()
 // Настройка и включение прерывания. Mode-выбор причины прерывания, level-уровень прерывания.
 void XmegaAdc::xmega_adc_interrupt_enable(ADC_CH_INTMODE_t mode, ADC_CH_INTLVL_t level)
 {
-    chanel->INTCTRL = mode | level;
+         chanel->INTCTRL = mode | level;
 }
 
 // Считывание значения offset. Нужный PIN (ADC_CH_MUXPOS_PIN1_gc) подтянуть на землю
