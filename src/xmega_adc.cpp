@@ -6,7 +6,7 @@ XmegaAdc::XmegaAdc(ADC_t *_adc, PORT_t *_portAdc, uint8_t _pinAdc, ADC_REFSEL_t 
     : adc(_adc), portAdc(_portAdc), pinAdc(_pinAdc), Vref(_Vref), prescaler(_prescaler), source_signal(_source_signal), pin_muxpos(_pin_muxpos), chanel(_chanel)
 {
 
-    portAdc->DIRCLR = pinAdc;
+    portAdc->DIRCLR = pinAdc; //pin на вход
     xmega_adc_init();
 }
 
@@ -21,11 +21,11 @@ XmegaAdc::XmegaAdc(ADC_t *_adc, ADC_REFSEL_t _Vref, ADC_PRESCALER_t _prescaler, 
 void XmegaAdc::xmega_adc_init()
 {
 
-    adc->REFCTRL = Vref;
-    adc->PRESCALER = prescaler; //
+    adc->REFCTRL = Vref;  //опорное напряжение
+    adc->PRESCALER = prescaler; // делитель FCPU 
     adc->CTRLB = ADC_RESOLUTION_12BIT_gc;
     chanel->CTRL = source_signal; // входной сигнал
-    chanel->MUXCTRL = pin_muxpos;
+    chanel->MUXCTRL = pin_muxpos;  //номер пина на котором контролируем ADC
     xmega_adc_write_calibration_data();
     adc->CTRLA |= ADC_ENABLE_bm; // включение ADC
 
